@@ -5,7 +5,8 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class NoteServiceTest {
-    private val service = NoteService()
+    private val noteService = NoteService()
+    private val commentService = CommentService()
 
     @Test
     fun add() {
@@ -18,9 +19,9 @@ class NoteServiceTest {
             date = 10_04_2022
         )
         //act
-        val addedNote1 = service.add(add)
+        val addedNote1 = noteService.add(add)
         // assert
-        assertEquals(1, addedNote1)
+        assertNotNull(addedNote1)
     }
 
     @Test
@@ -33,14 +34,14 @@ class NoteServiceTest {
             date = 10_04_2022
         )
         //act
-        val addedComment1 = service.createComment(comment)
+        val addedComment1 = commentService.add(comment)
         // assert
-        assertEquals(1, addedComment1)
+        assertNotNull(addedComment1)
     }
 
     @Test
     fun successfulDelete() {
-        val addedNote2 = service.add(
+        val addedNote2 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -50,23 +51,23 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        service.createComment(
+        commentService.add(
             Comment(
-                noteId = addedNote2,
+                noteId = addedNote2.id,
                 replyTo = 2,
                 message = "And Oscar goes to...",
                 id = 5,
                 date = 10_04_2022
             )
         )
-        val result = service.delete(currentNoteId = addedNote2)
+        val result = noteService.delete(id = addedNote2.id)
         assertTrue(result)
 
     }
 
     @Test
     fun unsuccessfulDelete() {
-        val addedNote3 = service.add(
+        val addedNote3 = noteService.add(
             Note(
                 id = 3,
                 title = "Affirmation",
@@ -76,23 +77,22 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        service.createComment(
+        commentService.add(
             Comment(
-                noteId = 5,
+                noteId = addedNote3.id,
                 replyTo = 2,
                 message = "And Oscar goes to...",
                 id = 5,
                 date = 10_04_2022
             )
         )
-        val result = service.delete(currentNoteId = addedNote3)
+        val result = noteService.delete(id = 5)
         assertFalse(result)
-
     }
 
     @Test
     fun successfulDeleteComment() {
-        val addedNote4 = service.add(
+        val addedNote4 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -102,47 +102,37 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        val addedComment2 = service.createComment(
+        val addedComment2 = commentService.add(
             Comment(
-                noteId = addedNote4,
+                noteId = addedNote4.id,
                 replyTo = 2,
                 message = "Hakuna Matata!",
                 id = 2,
                 date = 10_04_2022
             )
         )
-        val result = service.deleteComment(currentCommentId = addedComment2)
+        val result = commentService.delete(id = addedComment2.id)
         assertTrue(result)
     }
 
     @Test
     fun unsuccessfulDeleteComment() {
-        val addedNote5 = service.add(
-            Note(
-                id = 1,
-                title = "Affirmation",
-                text = "You can win if you want",
-                privacy = 0,
-                commentPrivacy = 0,
-                date = 10_04_2022
-            )
-        )
-        val addedComment3 = service.createComment(
+        val addedComment3 = commentService.add(
             Comment(
-                noteId = addedNote5,
+                noteId = 1,
                 replyTo = 2,
                 message = "Hakuna Matata!",
                 id = 5,
                 date = 10_04_2022
             )
         )
-        val result = service.deleteComment(currentCommentId = addedComment3)
+        val result = commentService.delete(id = 3)
         assertFalse(result)
     }
 
     @Test
     fun successfulEdit() {
-        val addedNote6 = service.add(
+        val addedNote6 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -153,9 +143,9 @@ class NoteServiceTest {
             )
         )
 
-        val updatedNote1 = service.edit(
+        val updatedNote1 = noteService.edit(
             Note(
-                id = addedNote6,
+                id = addedNote6.id,
                 title = "Affirmation",
                 text = "Love will save the world",
                 privacy = 0,
@@ -163,12 +153,13 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        assertEquals(1, updatedNote1)
+
+        assertTrue(updatedNote1)
     }
 
     @Test
     fun unsuccessfulEdit() {
-        val addedNote7 = service.add(
+        val addedNote7 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -179,7 +170,7 @@ class NoteServiceTest {
             )
         )
 
-        val updatedNote2 = service.edit(
+        val updatedNote2 = noteService.edit(
             Note(
                 id = 10,
                 title = "Affirmation",
@@ -189,12 +180,12 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        assertEquals(180, updatedNote2)
+        assertFalse(updatedNote2)
     }
 
     @Test
     fun successfulEditComment() {
-        val addedNote8 = service.add(
+        val addedNote8 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -204,21 +195,21 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        val addedComment4 = service.createComment(
+        val addedComment4 = commentService.add(
             Comment(
-                noteId = addedNote8,
+                noteId = addedNote8.id,
                 replyTo = 2,
                 message = "Hakuna Matata!",
                 id = 2,
                 date = 10_04_2022
             )
         )
-        val updatedComment1 = service.editComment(
+        val updatedComment1 = commentService.edit(
             Comment(
                 noteId = 1,
                 replyTo = 2,
                 message = "And Oscar goes to...",
-                id = addedComment4,
+                id = addedComment4.id,
                 date = 10_04_2022
             )
         )
@@ -227,31 +218,22 @@ class NoteServiceTest {
 
     @Test
     fun failedEditComment() {
-        val addedNote9 = service.add(
-            Note(
-                id = 1,
-                title = "Affirmation",
-                text = "You can win if you want",
-                privacy = 0,
-                commentPrivacy = 0,
-                date = 10_04_2022
-            )
-        )
-        val addedComment5 = service.createComment(
+
+        commentService.add(
             Comment(
-                noteId = addedNote9,
+                noteId = 1,
                 replyTo = 2,
                 message = "Hakuna Matata!",
                 id = 20,
                 date = 10_04_2022
             )
         )
-        val updatedComment2 = service.editComment(
+        val updatedComment2 = commentService.edit(
             Comment(
-                noteId = 1,
+                noteId = 2,
                 replyTo = 2,
                 message = "And Oscar goes to...",
-                id = addedComment5,
+                id = 7,
                 date = 10_04_2022
             )
         )
@@ -260,7 +242,7 @@ class NoteServiceTest {
 
     @Test
     fun get() {
-        service.add(
+        noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -270,7 +252,7 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        service.add(
+        noteService.add(
             Note(
                 id = 2,
                 title = "Affirmation",
@@ -280,13 +262,13 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        val result = service.get(noteIds = "1,2")
+        val result = noteService.read(ids = "1,2")
         assertNotNull(result)
     }
 
     @Test
     fun getById() {
-        val addedNote10 = service.add(
+        val addedNote10 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -296,13 +278,14 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        val result = service.getById(addedNote10)
+        noteService.add(addedNote10)
+        val result = noteService.getById(addedNote10.id)
         assertNotNull(result)
     }
 
     @Test
     fun failedGetById() {
-        val addedNote11 = service.add(
+        val addedNote11 = noteService.add(
             Note(
                 id = 10,
                 title = "Affirmation",
@@ -312,13 +295,44 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        val result = service.getById(addedNote11)
+
+        val result = noteService.getById(20)
         assertNull(result)
     }
 
     @Test
-    fun getComments() {
-        val addedNote12 = service.add(
+    fun getCommentById() {
+        val addedComment5 = commentService.add(
+            Comment(
+                noteId = 1,
+                replyTo = 2,
+                message = "Hakuna Matata!",
+                id = 20,
+                date = 10_04_2022
+            )
+        )
+        val result = commentService.getById(addedComment5.id)
+        assertNotNull(result)
+    }
+
+    @Test
+    fun failedGetCommentById() {
+        val addedComment6 = commentService.add(
+            Comment(
+                noteId = 1,
+                replyTo = 2,
+                message = "Hakuna Matata!",
+                id = 20,
+                date = 10_04_2022
+            )
+        )
+        val result = commentService.getById(3)
+        assertNull(result)
+    }
+
+    @Test
+    fun read() {
+        val addedNote12 = noteService.add(
             Note(
                 id = 1,
                 title = "Affirmation",
@@ -328,75 +342,57 @@ class NoteServiceTest {
                 date = 10_04_2022
             )
         )
-        service.createComment(
+        commentService.add(
             Comment(
-                noteId = addedNote12,
+                noteId = addedNote12.id,
                 replyTo = 2,
                 message = "Hakuna Matata!",
                 id = 1,
                 date = 10_04_2022
             )
         )
-        service.createComment(
+        commentService.add(
             Comment(
-                noteId = addedNote12,
+                noteId = addedNote12.id,
                 replyTo = 2,
                 message = "What a wonderful world!",
                 id = 2,
                 date = 10_04_2022
             )
         )
-        val result = service.getComments(addedNote12)
+        val result = commentService.read(ids = "1,2")
         assertNotNull(result)
     }
 
     @Test
     fun successfulRestoreComment() {
-        val addedNote13 = service.add(
-            Note(
-                id = 1,
-                title = "Affirmation",
-                text = "You can win if you want! Think positive!",
-                privacy = 0,
-                commentPrivacy = 0,
-                date = 10_04_2022
-            )
-        )
-        val addedComment6 = service.createComment(
+
+        val addedComment6 = commentService.add(
             Comment(
-                noteId = addedNote13,
+                noteId = 1,
                 replyTo = 2,
                 message = "Hakuna Matata!",
-                id = 2,
+                id = 1,
                 date = 10_04_2022
             )
         )
-        service.deleteComment(addedComment6)
-        service.restoreComment(addedComment6)
+        commentService.delete(addedComment6.id)
+        commentService.restoreComment(addedComment6.id)
     }
 
     @Test(expected = DeletedCommentNotFoundException::class)
     fun shouldThrow() {
-        val addedNote14 = service.add(
-            Note(
-                id = 1,
-                title = "Affirmation",
-                text = "You will meet your love! Think positive!",
-                privacy = 0,
-                commentPrivacy = 0,
-                date = 10_04_2022
-            )
-        )
-        val addedComment7 = service.createComment(
+
+        val addedComment7 = commentService.add(
             Comment(
-                noteId = addedNote14,
+                noteId = 1,
                 replyTo = 2,
                 message = "Love saves the world!",
                 id = 5,
                 date = 10_04_2022
             )
         )
-        service.deleteComment(addedComment7)
-        service.restoreComment(addedComment7)
+        commentService.delete(addedComment7.id)
+        commentService.restoreComment(20)
     }
 }

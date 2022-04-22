@@ -1,121 +1,60 @@
 package ru.netology
 
-class NoteService(
-    private var notes: MutableList<Note> = mutableListOf(),
-    private var comments: MutableList<Comment> = mutableListOf(),
-    private var blackList: MutableList<Comment> = mutableListOf(),
-    private var noteNextId: Int = 0,
-    private var commentNextId: Int = 1
+class NoteService : CrudService<Note> {
 
-) {
+    val notes: MutableList<Note> = mutableListOf()
+    private var nextId = 1
 
-    fun add(note: Note): Int {
-        note.copy(id = noteNextId)
-        noteNextId++
-        notes += note
-        return noteNextId
+
+    override fun add(element: Note): Note {
+        element.copy(id = nextId)
+        nextId++
+        notes += element
+        return notes.last()
     }
 
-    fun createComment(comment: Comment): Int {
-        for (note in notes) {
-            if (note.id == comment.noteId) {
-                comment.copy(id = commentNextId)
-                commentNextId++
-                comments += comment
-            }
-        }
-        return commentNextId
-    }
 
-    fun delete(currentNoteId: Int): Boolean {
-        for (note in notes) {
-            for (comment in comments)
-                if (note.id == currentNoteId || comment.noteId == currentNoteId) {
-                    blackList += comment
-                    comments.remove(comment)
-                    notes.remove(note)
-                    return true
-                }
-        }
-        return false
-    }
-
-    fun deleteComment(currentCommentId: Int): Boolean {
-        for (comment in comments) {
-            if (comment.id == currentCommentId) {
-                blackList += comment
-                comments.remove(comment)
+    override fun delete(id: Int): Boolean {
+        for (element in notes) {
+            if (element.id == id) {
+                notes.remove(element)
                 return true
             }
         }
         return false
     }
 
-    fun edit(note: Note): Int {
-        for ((index, newNote) in notes.withIndex()) {
-            if (note.id == newNote.id) {
-                notes[index] = note.copy(
-                    title = newNote.title,
-                    text = newNote.text,
-                    privacy = newNote.privacy,
-                    commentPrivacy = newNote.commentPrivacy,
-                )
-                return 1
-            }
-        }
-        return 180
-    }
-
-    fun editComment(comment: Comment): Boolean {
-        for ((index, newComment) in comments.withIndex()) {
-            if (comment.id == newComment.id) {
-                comments[index] = comment.copy(message = newComment.message)
+    override fun edit(element: Note): Boolean {
+        for ((index, newElement) in notes.withIndex()) {
+            if (element.id == newElement.id) {
+                notes[index] = element
                 return true
             }
         }
         return false
     }
 
-    fun get(noteIds: String): MutableList<Note> {
+    override fun read(ids: String): MutableList<Note> {
         val newNote: MutableList<Note> = mutableListOf()
-        val parts = noteIds.split(",")
+        val parts = ids.split(",")
         for (part in parts) {
-            for ((index, note) in notes.withIndex()) {
+            for ((index, element) in notes.withIndex()) {
                 val currentId = Integer.parseInt(parts[index])
-                if (currentId == note.id) {
-                    newNote += note
+                if (currentId == element.id) {
+                    newNote += element
                 }
             }
         }
         return newNote
     }
 
-    fun getById(givenNoteId: Int): Note? {
-        for (note in notes) {
-            if (note.id == givenNoteId) {
-                return note
+    override fun getById(id: Int): Note? {
+        for (element in notes) {
+            if (element.id == id) {
+                return element
             }
         }
         return null
     }
 
-    fun getComments(currentNoteId: Int): MutableList<Comment> {
-        val altComment: MutableList<Comment> = mutableListOf()
-        for ((index, comment) in comments.withIndex()) {
-            if (currentNoteId == comment.noteId) {
-                altComment += comment
-            }
-        }
-        return altComment
-    }
-
-    fun restoreComment(deletedCommentId: Int) {
-        for (comment in blackList) {
-            if (deletedCommentId == comment.id) {
-                comments += comment
-                return
-            }
-        }
-        throw DeletedCommentNotFoundException("Такой комментарий не найден!!")
-    }
 }

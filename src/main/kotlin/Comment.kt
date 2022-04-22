@@ -6,5 +6,4 @@ data class Comment(
     val message: String,
     val id: Int,
     val date: Int
-){
-}
+)
